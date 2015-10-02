@@ -40,23 +40,13 @@ namespace FreeCell
 		RANK_K = 13,
 	};
 
-	// typedef unsigned char Card;
-	typedef unsigned char CARD;
-	typedef unsigned char AREA;
-	typedef unsigned char SLOT;
-
-	enum
+	typedef enum : unsigned char
 	{
-		// Special constants that represent the four home cells.
-		// These constants are constructed as if they are cards
-		// with rank zero.
-		AREA_HOMECELL = 0,
-		SLOT_HOMECELL_S = AREA_HOMECELL + 0,
-		SLOT_HOMECELL_H = AREA_HOMECELL + 1,
-		SLOT_HOMECELL_C = AREA_HOMECELL + 2,
-		SLOT_HOMECELL_D = AREA_HOMECELL + 3,
+		// Dummy cards with rank = 0, used to represent the "base"
+		// of home cells.
+		CARD_0S, CARD_0H, CARD_0C, CARD_0D,
 
-		// Constants that represent actual cards (rank >= 1).
+		// Actual cards (rank = 1..13).
 		CARD_AS, CARD_AH, CARD_AC, CARD_AD,
 		CARD_2S, CARD_2H, CARD_2C, CARD_2D,
 		CARD_3S, CARD_3H, CARD_3C, CARD_3D,
@@ -71,37 +61,39 @@ namespace FreeCell
 		CARD_QS, CARD_QH, CARD_QC, CARD_QD,
 		CARD_KS, CARD_KH, CARD_KC, CARD_KD,
 
-		// Constants that represent the eight columns.
-		AREA_COLUMN = 0x80,
-		SLOT_COLUMN_0 = AREA_COLUMN + 0,
-		SLOT_COLUMN_1 = AREA_COLUMN + 1,
-		SLOT_COLUMN_2 = AREA_COLUMN + 2,
-		SLOT_COLUMN_3 = AREA_COLUMN + 3,
-		SLOT_COLUMN_4 = AREA_COLUMN + 4,
-		SLOT_COLUMN_5 = AREA_COLUMN + 5,
-		SLOT_COLUMN_6 = AREA_COLUMN + 6,
-		SLOT_COLUMN_7 = AREA_COLUMN + 7,
+		// Constants that represent an area.
+		AREA_COLUMN = 0x40,
+		AREA_FREECELL = 0x50,
+		AREA_HOMECELL = 0x60,
 
-		// Constants that represent the four free cells.
-		AREA_FREECELL = 0x90,
-		SLOT_FREECELL_0 = AREA_FREECELL + 0,
-		SLOT_FREECELL_1 = AREA_FREECELL + 1,
-		SLOT_FREECELL_2 = AREA_FREECELL + 2,
-		SLOT_FREECELL_3 = AREA_FREECELL + 3,
+		// Constants that represent a slot.
+		SLOT_COLUMN_0 = AREA_COLUMN + 0x80,
+		SLOT_COLUMN_1,
+		SLOT_COLUMN_2,
+		SLOT_COLUMN_3,
+		SLOT_COLUMN_4,
+		SLOT_COLUMN_5,
+		SLOT_COLUMN_6,
+		SLOT_COLUMN_7,
 
-		// Bit-masks to extract AREA and index from a SLOT.
-		MASK_AREA = 0xf0,
-		MASK_INDEX = 0x0f,
+		SLOT_FREECELL_0 = AREA_FREECELL + 0x80,
+		SLOT_FREECELL_1,
+		SLOT_FREECELL_2,
+		SLOT_FREECELL_3,
 
-		CARD_INVALID = 255,
-		AREA_INVALID = 255,
-		SLOT_INVALID = 255,
-	};
+		SLOT_HOMECELL_S = AREA_HOMECELL + 0x80,
+		SLOT_HOMECELL_H,
+		SLOT_HOMECELL_C,
+		SLOT_HOMECELL_D,
 
-	inline bool IsInvalid(CARD c)
+		// Special constant.
+		INVALID = 0xff,
+	} CARD, AREA, SLOT;
+
+	/*inline bool IsInvalid(CARD c)
 	{
 		return c == CARD_INVALID;
-	}
+	}*/
 
 	inline bool IsCard(CARD c)
 	{
@@ -156,16 +148,6 @@ namespace FreeCell
 		return static_cast<Suit>(suit ^ 3);
 	}
 
-	/*inline Card change_color_1(Card card)
-	{
-		return static_cast<Card>(card ^ 1);
-	}
-
-	inline Card change_color_2(Card card)
-	{
-		return static_cast<Card>(card ^ 3);
-	}*/
-
 	inline CARD IncrementRank(CARD card)
 	{
 		assert(card >= 0 && card < 56);
@@ -185,5 +167,34 @@ namespace FreeCell
 	inline bool IsIncrementRankAlternateColor(CARD c1, CARD c2)
 	{
 		return IsIncrementRank(c1, c2) && IsAlternateColor(c1, c2);
+	}
+
+	inline AREA SlotArea(SLOT slot) 
+	{
+		return static_cast<AREA>(slot & 0x70);
+	}
+
+	inline int SlotIndex(SLOT slot)
+	{
+		return slot & 7;
+	}
+
+	inline SLOT MakeSlot(AREA area, int index)
+	{
+		switch (area)
+		{
+		case AREA_COLUMN:
+			assert(index >= 0 && index < 8);
+			return static_cast<SLOT>(SLOT_COLUMN_0 + index);
+		case AREA_FREECELL:
+			assert(index >= 0 && index < 4);
+			return static_cast<SLOT>(SLOT_FREECELL_0 + index);
+		case AREA_HOMECELL:
+			assert(index >= 0 && index < 4);
+			return static_cast<SLOT>(SLOT_HOMECELL_S + index);
+		default:
+			assert(0);
+			return static_cast<SLOT>(0);
+		}
 	}
 }

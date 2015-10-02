@@ -19,7 +19,7 @@ namespace FreeCell
 		SLOT to;
 
 		CardMove()
-			: card(SLOT_INVALID), from(SLOT_INVALID), to(SLOT_INVALID)
+			: card(INVALID), from(INVALID), to(INVALID)
 		{
 		}
 
@@ -30,19 +30,19 @@ namespace FreeCell
 			assert(IsSlot(toArea, toIndex));
 
 			this->card = card;
-			this->from = fromArea + fromIndex;
-			this->to = toArea + toIndex;
+			this->from = MakeSlot(fromArea, fromIndex);
+			this->to = MakeSlot(toArea, toIndex);
 		}
 
 		CARD Card() const { return card; }
 
-		AREA FromArea() const { return from & 0xf8; }
+		AREA FromArea() const { return SlotArea(from); }
 		
-		int FromIndex() const { return from & 7; }
+		int FromIndex() const { return SlotIndex(from); }
 
-		AREA ToArea() const { return to & 0xf8; }
+		AREA ToArea() const { return SlotArea(to); }
 
-		int ToIndex() const { return to & 7; }
+		int ToIndex() const { return SlotIndex(to); }
 	};
 
 	//__declspec(align(8)) 
@@ -99,6 +99,17 @@ namespace FreeCell
 
 	public:
 
+		State()
+		{
+			memset(head, AREA_COLUMN, sizeof(head));
+			memset(hand, AREA_FREECELL, sizeof(hand));
+			memset(next, INVALID, sizeof(next));
+			home[0] = CARD_0S;
+			home[1] = CARD_0H;
+			home[2] = CARD_0C;
+			home[3] = CARD_0D;
+		}
+
 		CARD TopCardOfColumn(int columnIndex) const
 		{
 			assert(columnIndex >= 0 && columnIndex < 8);
@@ -121,17 +132,6 @@ namespace FreeCell
 		{
 			assert(index >= 0 && index < 4);
 			return hand[index];
-		}
-
-		void Reset()
-		{
-			memset(head, AREA_COLUMN, sizeof(head));
-			memset(hand, AREA_FREECELL, sizeof(hand));
-			memset(next, SLOT_INVALID, sizeof(next));
-			home[0] = SLOT_HOMECELL_S;
-			home[1] = SLOT_HOMECELL_H;
-			home[2] = SLOT_HOMECELL_C;
-			home[3] = SLOT_HOMECELL_D;
 		}
 
 		bool IsColumnEmpty(int columnIndex) const
@@ -241,7 +241,7 @@ namespace FreeCell
 		{
 			assert(IsCard(card));
 			assert(columnIndex >= 0 && columnIndex < 8);
-			assert(CardUnder(card) == CARD_INVALID); // AREA_DECK
+			assert(CardUnder(card) == INVALID);
 			CardUnder(card) = TopCardOfColumn(columnIndex);
 			TopCardOfColumn(columnIndex) = card;
 		}

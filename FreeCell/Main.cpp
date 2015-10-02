@@ -5,7 +5,9 @@
 #include "State.h"
 #include "Solver.h"
 #include "GenerateGame.h"
-#include <cstdio>
+#include "IO.h"
+
+#include <iostream>
 
 using namespace FreeCell;
 
@@ -14,16 +16,19 @@ int main(int argc, char *argv[])
 	int gameNumber = 739671;
 
 	State start = GenerateGame(gameNumber);
+	std::cout << start;
+	return 0;
 
 	// generate game
 
 	Solution solution;
 	Solve(start, solution);
 	if (solution.isSolved)
-		printf("Solved.\n");
+		std::cout << "Solved." << std::endl;
 	else
-		printf("Not solved.\n");
+		std::cout << "No solution." << std::endl;
 
+	return 0;
 }
 
 #if 0

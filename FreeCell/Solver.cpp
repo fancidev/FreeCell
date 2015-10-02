@@ -29,7 +29,7 @@ namespace FreeCell
 			: state(start), parent(nullptr), move()
 		{
 			state.CollectSafely();
-			score = ComputeStateScore(start);
+			score = ComputeStateScore(state);
 		}
 
 		SearchNode(const SearchNode *parent, CardMove move)
@@ -111,9 +111,13 @@ namespace FreeCell
 
 			CardMove moves[80];
 			int numMoves = node->state.GetPossibleMoves(moves);
+			assert(numMoves <= 80);
 			for (int i = 0; i < numMoves; i++)
 			{
-				auto result = expandedStates.emplace(node, moves[i]);
+				CardMove move = moves[i];
+				SearchNode newNode(node, move);
+				//auto result = expandedStates.emplace(node, move);
+				auto result = expandedStates.insert(newNode);
 				if (result.second) // not duplicate
 				{
 					queue.push(&(*result.first));
@@ -159,7 +163,6 @@ namespace FreeCell
 					if (RankOf(c) <= RankOf(card))
 					{
 						++score;
-						break;
 					}
 				}
 				card = state.CardUnder(card);

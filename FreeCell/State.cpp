@@ -248,7 +248,8 @@ namespace FreeCell
 								AREA_COLUMN, destColumn);
 						}
 					}
-					if (IsIncrementRankAlternateColor(card, CardUnder(card)))
+					if (IsCard(CardUnder(card)) &&
+						IsIncrementRankAlternateColor(card, CardUnder(card)))
 						card = CardUnder(card);
 					else
 						break;
@@ -265,7 +266,8 @@ namespace FreeCell
 						AREA_COLUMN, srcColumn, 
 						AREA_COLUMN, firstEmptyColumn);
 
-					if (IsIncrementRankAlternateColor(card, CardUnder(card)))
+					if (IsCard(CardUnder(card)) &&
+						IsIncrementRankAlternateColor(card, CardUnder(card)))
 						card = CardUnder(card);
 					else
 						break;

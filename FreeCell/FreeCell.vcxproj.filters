@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="cardio.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="State.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -30,12 +27,12 @@
     <ClCompile Include="GenerateGame.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="IO.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="card.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="cardio.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="state.h">
@@ -45,6 +42,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GenerateGame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
