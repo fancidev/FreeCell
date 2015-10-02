@@ -8,27 +8,49 @@
 #include "IO.h"
 
 #include <iostream>
+#include <fstream>
 
 using namespace FreeCell;
 
-int main(int argc, char *argv[])
+static void TestIO(int gameNumber)
 {
-	int gameNumber = 739671;
-
 	State start = GenerateGame(gameNumber);
 	std::cout << start;
-	return 0;
+}
 
-	// generate game
-
+static void TestGame(int gameNumber)
+{
+	State start = GenerateGame(gameNumber);
+	std::cout << start;
+	
 	Solution solution;
 	Solve(start, solution);
-	if (solution.isSolved)
-		std::cout << "Solved." << std::endl;
-	else
-		std::cout << "No solution." << std::endl;
+	std::cout << solution;
+}
 
-	return 0;
+static void TestEasy()
+{
+	std::fstream fs;
+	fs.open("../Test/Easy.txt", std::ios::in);
+	
+	State state;
+	fs >> state;
+	std::cout << state;
+
+	Solution solution;
+	Solve(state, solution);
+	std::cout << solution;
+}
+
+int main(int argc, char *argv[])
+{
+	// TestIO(5121496); // OK
+
+	// TestEasy();
+	// TestGame(739671); // cannot get
+	// TestGame(2);
+
+	TestGame(5121496);
 }
 
 #if 0

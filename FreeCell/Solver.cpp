@@ -101,10 +101,11 @@ namespace FreeCell
 			if (node->state.IsWinning())
 			{
 				solution.isSolved = true;
-				do
+				while (node->parent != nullptr)
 				{
 					solution.moves.push_back(node->move);
-				} while ((node = node->parent) != nullptr);
+					node = node->parent;
+				} 
 				std::reverse(solution.moves.begin(), solution.moves.end());
 				break;
 			}

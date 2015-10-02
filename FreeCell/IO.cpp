@@ -212,4 +212,52 @@ namespace FreeCell
 		stream << std::endl; // emit blank line
 		return stream;
 	}
+
+	std::ostream& operator << (std::ostream &os, const CARD &card)
+	{
+		return os << FormatRank(RankOf(card)) << FormatSuit(SuitOf(card));
+	}
+
+	std::ostream& operator << (std::ostream &os, const CardMove &move)
+	{
+		os << move.Card() << "->";
+		switch (move.ToArea())
+		{
+		case AREA_COLUMN:
+			os << 'C' << (move.ToIndex() + 1);
+			break;
+		case AREA_FREECELL:
+			os << "FREE";
+			break;
+		case AREA_HOMECELL:
+			os << "HOME";
+			break;
+		}
+		return os;
+	}
+
+	std::ostream& operator<<(std::ostream &os, const Solution &solution)
+	{
+		if (solution.isSolved)
+		{
+			os << "Solved in " << solution.moves.size() << " moves:";
+			for (size_t i = 0; i < solution.moves.size(); ++i)
+			{
+				os << " ";
+				os << solution.moves[i];
+			}
+			os << std::endl;
+		}
+		else
+		{
+			os << "NO SOLUTION." << std::endl;
+		}
+
+		//os<<
+		os << "# states expanded  : " << solution.numStatesExpanded << std::endl;
+		os << "# states queued    : " << solution.numStatesQueued << std::endl;
+		os << "# states processed : " << solution.numStatesProcessed << std::endl;
+
+		return os;
+	}
 }
