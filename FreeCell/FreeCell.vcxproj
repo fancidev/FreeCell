@@ -64,21 +64,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="btree.c" />
-    <ClCompile Include="card.c" />
     <ClCompile Include="cardio.c" />
-    <ClCompile Include="fcplay.c" />
-    <ClCompile Include="gengame.c" />
-    <ClCompile Include="state.c" />
-    <ClCompile Include="statemap.c" />
+    <ClCompile Include="GenerateGame.cpp" />
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Solver.cpp" />
+    <ClCompile Include="State.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="btree.h" />
     <ClInclude Include="card.h" />
     <ClInclude Include="cardio.h" />
-    <ClInclude Include="gengame.h" />
+    <ClInclude Include="GenerateGame.h" />
+    <ClInclude Include="Solver.h" />
     <ClInclude Include="state.h" />
-    <ClInclude Include="statemap.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

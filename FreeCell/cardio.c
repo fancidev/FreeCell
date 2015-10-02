@@ -1,3 +1,4 @@
+#if 0
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -251,3 +252,4 @@ const char *move2str(CARD_MOVE m)
         loc2str(MOVE_SRC(m)), loc2str(MOVE_DST(m)));
     return buf;
 }
+#endif

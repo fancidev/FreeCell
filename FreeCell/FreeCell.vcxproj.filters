@@ -15,45 +15,36 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="btree.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="card.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="cardio.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="fcplay.c">
+    <ClCompile Include="State.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="gengame.c">
+    <ClCompile Include="Solver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="state.c">
+    <ClCompile Include="Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="statemap.c">
+    <ClCompile Include="GenerateGame.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="btree.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="card.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cardio.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="gengame.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="state.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="statemap.h">
+    <ClInclude Include="Solver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GenerateGame.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

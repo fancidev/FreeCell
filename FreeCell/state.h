@@ -1,141 +1,256 @@
-#ifndef FCPLAY_STATE_H
-#define FCPLAY_STATE_H
+///////////////////////////////////////////////////////////////////////////
+// State.h -- encodes a state of the game
+//
+
+#pragma once
 
 #include "card.h"
+#include <cassert>
+#include <array>
+#include <vector>
 
-typedef struct STATE {
+namespace FreeCell
+{
+	// Encodes the movement of a card.
+	struct CardMove
+	{
+		CARD card;
+		SLOT from;
+		SLOT to;
 
-    /* The card on top of each column in the deck, or CARD_NONE
-     * if that column is empty.
-     * Ordered by the bottom card index in that column, which means
-     * empty column comes first.
-     */
-    CARD head[8];
+		CardMove()
+			: card(SLOT_INVALID), from(SLOT_INVALID), to(SLOT_INVALID)
+		{
+		}
 
-    /* The cards in hand, or CARD_NONE. 
-     * Ordered by card index, which means free cell comes first.
-     */
-    CARD hand[4];
+		CardMove(CARD card, AREA fromArea, int fromIndex, AREA toArea, int toIndex)
+		{
+			assert(IsCard(card));
+			assert(IsSlot(fromArea, fromIndex));
+			assert(IsSlot(toArea, toIndex));
 
-    /* The largest card of each suit at home, or CARD_NONE. 
-     * Indexed by suit.
-     */
-    CARD home[4];
+			this->card = card;
+			this->from = fromArea + fromIndex;
+			this->to = toArea + toIndex;
+		}
 
-    /* If B = card[CARD2INDEX(A)], then B is the card under A. 
-     * If there is no card under A, i.e. if A is at the bottom,
-     * in the freecell, or already collected, B = CARD_NONE.
-     */
-    CARD next[52];
+		CARD Card() const { return card; }
 
-} STATE;
+		AREA FromArea() const { return from & 0xf8; }
+		
+		int FromIndex() const { return from & 7; }
 
-#define CARD_IN_FREECELL(st,which)          ((st)->hand[which])
-#define CARD_IN_HOMECELL(st,suit_or_card)   ((st)->home[(unsigned)(suit_or_card)&0x3])
-#define TOP_CARD_OF_COLUMN(st,col)          ((st)->head[col])
-#define CARD_UNDER(st,card)                 ((st)->next[CARD2INDEX(card)])
+		AREA ToArea() const { return to & 0xf8; }
 
-#define IS_COLUMN_EMPTY(st,col)     IS_NONE(TOP_CARD_OF_COLUMN(st,col))
-#define IS_FREECELL_EMPTY(st,col)   IS_NONE(CARD_IN_FREECELL(st,col))
-#define IS_HOMECELL_EMPTY(st,suit_or_card)  (RANK_OF(CARD_IN_HOMECELL(st,suit_or_card))==0)
-#define CAN_COLLECT(st,card)        IS_UP_INSUIT(card,CARD_IN_HOMECELL(st,card))
+		int ToIndex() const { return to & 7; }
+	};
 
-#define IS_WON(st) ( \
-    RANK_OF(CARD_IN_HOMECELL(st,CARD_SPADE))==13 && \
-    RANK_OF(CARD_IN_HOMECELL(st,CARD_HEART))==13 && \
-    RANK_OF(CARD_IN_HOMECELL(st,CARD_CLUB))==13 && \
-    RANK_OF(CARD_IN_HOMECELL(st,CARD_DIAMOND))==13 \
-    )
+	//__declspec(align(8)) 
+	class State
+	{
+		// The top card in each column, or AREA_COLUMN if the column
+		// is empty.
+		CARD head[8];
 
-/* Location */
-typedef enum CARD_LOCATION {
-    LOC_NOWHERE     = 0,
-    LOC_HOMECELL    = 0x10,
-    LOC_FREECELL    = 0x20,
-    LOC_FREECELL_1  = LOC_FREECELL+0,
-    LOC_FREECELL_2  = LOC_FREECELL+1,
-    LOC_FREECELL_3  = LOC_FREECELL+2,
-    LOC_FREECELL_4  = LOC_FREECELL+3,
-    LOC_COLUMN      = 0x30,
-    LOC_COLUMN_1    = LOC_COLUMN+0,
-    LOC_COLUMN_2    = LOC_COLUMN+1,
-    LOC_COLUMN_3    = LOC_COLUMN+2,
-    LOC_COLUMN_4    = LOC_COLUMN+3,
-    LOC_COLUMN_5    = LOC_COLUMN+4,
-    LOC_COLUMN_6    = LOC_COLUMN+5,
-    LOC_COLUMN_7    = LOC_COLUMN+6,
-    LOC_COLUMN_8    = LOC_COLUMN+7,
-} CARD_LOCATION;
+		// The cards in the free cells, or AREA_FREECELL if the cell
+		// is empty.
+		CARD hand[4];
 
-#define LOCATION_TYPE(loc) ((CARD_LOCATION)(loc) & 0xf0)
-#define LOCATION_INDEX(loc) ((int)(loc) & 0x0f)
+		// The largest card of each suit at home, or AREA_HOMECELL
+		// if no card of that suit is at home. This array is indexed
+		// by suit.
+		CARD home[4];
 
-typedef unsigned int CARD_MOVE;
-#define PACK_MOVE(card,from,to) ( \
-    ((unsigned int)(unsigned char)(CARD)(card)) | \
-    ((unsigned int)(unsigned char)(CARD_LOCATION)(from) << 8) | \
-    ((unsigned int)(unsigned char)(CARD_LOCATION)(to) << 16) \
-    )
-#define MOVE_WHAT(m) ((CARD)((unsigned)(m) & 0xff))
-#define MOVE_SRC(m)  ((CARD_LOCATION)(((unsigned)(m)>>8) & 0xff))
-#define MOVE_DST(m)  ((CARD_LOCATION)(((unsigned)(m)>>16) & 0xff))
-/*
-#define MOVE_SRC_TYPE(m)    LOCATION_TYPE(MOVE_SRC(m))
-#define MOVE_SRC_INDEX(m)   LOCATION_INDEX(MOVE_SRC(m))
-*/
+		// Linked-list of stacked cards. This list is used to uniquely
+		// identify a "distinct" state (to save from reordering of
+		// columns, etc). If B = next[A - 4], then B is one of:
+		//
+		//   CARD_AS ... CARD_KD : if B is the card under A in a column
+		//   AREA_COLUMN         : if A is the bottom card of a column
+		//   AREA_FREECELL       : if A is in a free cell
+		//   AREA_HOMECELL       : if A is in a home cell (collected)
+		CARD next[52];
 
-void ResetState(STATE *st);
-void NormalizeState(STATE *st);
-void GetBottomCards(const STATE *st, CARD cards[8]);
-void MoveCard(STATE *st, CARD_MOVE m);
-// void MoveCard2(STATE *st, CARD c, CARD_LOCATION from, CARD_LOCATION to);
-void DeriveState(STATE *st, const STATE *from, CARD_MOVE move);
-int  CanCollectSafely(const STATE *st, CARD c);
-int  CollectSafely(STATE *st);
-int  FindPossibleMoves(const STATE *st, CARD_MOVE moves[], int max_moves);
+	private:
 
+		CARD& TopCardOfColumn(int columnIndex)
+		{
+			assert(columnIndex >= 0 && columnIndex < 8);
+			return head[columnIndex];
+		}
 
+		CARD& CardUnder(CARD card)
+		{
+			assert(IsCard(card));
+			return next[card - 4];
+		}
 
+		CARD& TopCardInHomeCell(Suit suit)
+		{
+			assert(suit >= 0 && suit < 4);
+			return home[suit];
+		}
 
+		CARD& CardInFreeCell(int index)
+		{
+			assert(index >= 0 && index < 4);
+			return hand[index];
+		}
 
+	public:
 
+		CARD TopCardOfColumn(int columnIndex) const
+		{
+			assert(columnIndex >= 0 && columnIndex < 8);
+			return head[columnIndex];
+		}
 
+		CARD CardUnder(CARD card) const
+		{
+			assert(IsCard(card));
+			return next[card - 4];
+		}
 
+		CARD TopCardInHomeCell(Suit suit) const
+		{
+			assert(suit >= 0 && suit < 4);
+			return home[suit];
+		}
 
+		CARD CardInFreeCell(int index) const
+		{
+			assert(index >= 0 && index < 4);
+			return hand[index];
+		}
 
-#endif
+		void Reset()
+		{
+			memset(head, AREA_COLUMN, sizeof(head));
+			memset(hand, AREA_FREECELL, sizeof(hand));
+			memset(next, SLOT_INVALID, sizeof(next));
+			home[0] = SLOT_HOMECELL_S;
+			home[1] = SLOT_HOMECELL_H;
+			home[2] = SLOT_HOMECELL_C;
+			home[3] = SLOT_HOMECELL_D;
+		}
 
-#if 0
+		bool IsColumnEmpty(int columnIndex) const
+		{
+			assert(columnIndex >= 0 && columnIndex < 8);
+			return head[columnIndex] == AREA_COLUMN;
+		}
 
-__END__
+		bool IsFreeCellEmpty(int index) const
+		{
+			assert(index >= 0 && index < 4);
+			return hand[index] == AREA_FREECELL;
+		}
 
-#define ALTERNATE_SUIT_1(suit_or_card) (((int)(suit_or_card)+1) & 0x3)
-#define ALTERNATE_SUIT_2(suit_or_card) (((int)(suit_or_card)+3) & 0x3)
+		bool IsHomeCellEmpty(Suit suit) const
+		{
+			assert(suit >= 0 && suit < 4);
+			return home[suit] == suit;
+		}
 
-#define IS_COLUMN_EMPTY(st,col) (IS_NONE((st)->head[col]))
-#define IS_FREECELL_EMPTY(st,col) (IS_NONE((st)->hand[col]))
-/* #define IS_HOMECELL_EMPTY(st,col) (IS_NONE((st)->home[col])) */
+		int EmptyColumnCount() const
+		{
+			int count = 0;
+			for (int columnIndex = 0; columnIndex < 8; columnIndex++)
+			{
+				count += IsColumnEmpty(columnIndex) ? 1 : 0;
+			}
+			return count;
+		}
 
-/* Collect the given card to its home cell, regardless of whether 
- * this operation is legal. 
- */
-#define COLLECT_CARD(st,card) \
-    do { \
-        CARD c = card; \
-        CARD_IN_HOMECELL(st, SUIT_OF(c)) = c; \
-    } while (0)
+		int FirstEmptyColumn() const
+		{
+			for (int i = 0; i < 8; i++)
+			{
+				if (IsColumnEmpty(i))
+					return i;
+			}
+			return -1;
+		}
 
-/* Empty the specified free cell, keeping the state normalized.
- * Do not care about the card in that cell, not even if there's a card at all.
- */
-#define EMPTY_FREECELL(st0,which) \
-    do { \
-        STATE *st = st0; \
-        int j; \
-        for (j = which; j > 0; j--) { \
-            CARD_IN_FREECELL(st,j) = CARD_IN_FREECELL(st,j-1); \
-        } \
-        CARD_IN_FREECELL(st,0) = CARD_NONE; \
-    } while (0)
+		int EmptyFreeCellCount() const
+		{
+			int count = 0;
+			for (int index = 0; index < 4; index++)
+			{
+				count += IsFreeCellEmpty(index) ? 1 : 0;
+			}
+			return count;
+		}
 
-#endif
+		int FirstEmptyFreeCell() const
+		{
+			for (int i = 0; i < 4; i++)
+			{
+				if (IsFreeCellEmpty(i))
+					return i;
+			}
+			return -1;
+		}
+
+		bool IsWinning() const
+		{
+			return RankOf(home[0]) == 13
+				&& RankOf(home[1]) == 13
+				&& RankOf(home[2]) == 13
+				&& RankOf(home[3]) == 13;
+		}
+
+		bool CanCollect(CARD card) const
+		{
+			assert(IsCard(card));
+			return card == IncrementRank(TopCardInHomeCell(SuitOf(card)));
+		}
+
+		bool CanCollectSafely(CARD card) const;
+
+		void CollectSafely();
+
+		/*Card GetBottomCard(ColumnIndex column) const
+		{
+		Card bottomCard;
+		Card card = GetTopCard(column);
+		while (card != SLOT_COLUMN)
+		{
+		bottomCard = card;
+		card = GetCardUnder(card);
+		}
+		return bottomCard;
+		}
+		*/
+		//void SortColumns();
+
+		void MoveCard(CARD card, AREA fromArea, int fromIndex, AREA toArea, int toIndex);
+
+		int GetPossibleMoves(CardMove moves[80]) const;
+
+		size_t GetHashCode() const;
+
+		// Returns true if this state is equivalent to another state,
+		// subject to reordering of columns and cards in free cells.
+		bool IsEquivalentTo(const State &other) const
+		{
+			return memcmp(next, other.next, sizeof(next)) == 0;
+		}
+
+		void PlaceCardInColumn(CARD card, int columnIndex)
+		{
+			assert(IsCard(card));
+			assert(columnIndex >= 0 && columnIndex < 8);
+			assert(CardUnder(card) == CARD_INVALID); // AREA_DECK
+			CardUnder(card) = TopCardOfColumn(columnIndex);
+			TopCardOfColumn(columnIndex) = card;
+		}
+	};
+
+	inline int GetMovableDepth(int numEmptyCells, int numEmptyColumns)
+	{
+		int n = numEmptyCells;
+		int m = numEmptyColumns;
+		return n * (m + 1) + 1 + m * (m + 1) / 2;
+	}
+}
