@@ -13,6 +13,9 @@ namespace FreeCell
 
 	static score_t ComputeHeuristic1(const State &);
 	static score_t ComputeHeuristic2(const State &);
+	static score_t ComputeHeuristic3(const State &, size_t numSteps);
+	static score_t ComputeHeuristic4(const State &, size_t numSteps);
+	static score_t ComputeHeuristic5(const State &, size_t numSteps);
 
 	struct SearchNode
 	{
@@ -133,11 +136,19 @@ namespace FreeCell
 				case 2:
 					newNode.score = ComputeHeuristic2(newNode.state);
 					break;
+				case 3:
+					newNode.score = ComputeHeuristic3(newNode.state, newNode.numSteps);
+					break;
+				case 4:
+					newNode.score = ComputeHeuristic4(newNode.state, newNode.numSteps);
+					break;
+				case 5:
+					newNode.score = ComputeHeuristic5(newNode.state, newNode.numSteps);
+					break;
 				default:
 					assert(0);
 					break;
 				}
-				
 
 				auto result = expandedStates.insert(newNode);
 				if (result.second) // not duplicate
@@ -254,4 +265,23 @@ namespace FreeCell
 		return score;
 	}
 
+	static score_t ComputeHeuristic3(const State &state, size_t numSteps)
+	{
+		return ComputeHeuristic1(state) + numSteps;
+	}
+
+	static score_t ComputeHeuristic4(const State &state, size_t numSteps)
+	{
+		return ComputeHeuristic1(state) + numSteps
+			+ (4 - state.EmptyFreeCellCount()) * 10
+			+ (8 - state.EmptyColumnCount()) * 10;
+	}
+
+	static score_t ComputeHeuristic5(const State &state, size_t numSteps)
+	{
+		return ComputeHeuristic4(state, numSteps) - numSteps;
+			//+ (13-RankOf( (state.TopCardInHomeCell(SUIT_CLUB)))
+			//+ (4 - state.EmptyFreeCellCount()) * 10
+			//+ (8 - state.EmptyColumnCount()) * 10;
+	}
 }

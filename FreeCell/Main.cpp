@@ -19,12 +19,13 @@ static void TestIO(int gameNumber)
 	std::cout << start;
 }
 
-static void TestGame(int gameNumber, size_t maxProcess = -1)
+static void TestGame(int gameNumber, int heuristic, size_t maxProcess = -1)
 {
 	State start = GenerateGame(gameNumber);
 	std::cout << start;
 	
 	Strategy strategy;
+	strategy.heuristic = heuristic;
 	strategy.maximumNumberOfStatesToProcess = maxProcess;
 
 	Solution solution = Solve(start, strategy);
@@ -44,15 +45,15 @@ static void TestEasy()
 	std::cout << solution;
 }
 
-void TestMany(int numGames)
+void TestMany(int numGames, int heuristic1, int heuristic2)
 {
 	Strategy strategy1;
 	strategy1.maximumNumberOfStatesToProcess = 10000;
-	strategy1.heuristic = 1;
+	strategy1.heuristic = heuristic1;
 
 	Strategy strategy2;
 	strategy2.maximumNumberOfStatesToProcess = 10000;
-	strategy2.heuristic = 2;
+	strategy2.heuristic = heuristic2;
 
 	struct Summary
 	{
@@ -150,8 +151,11 @@ int main(int argc, char *argv[])
 	// TestGame(2);
 
 	//TestGame(5121496);
-	TestMany(10);
-	//TestGame(6469);
+	//TestGame(6469, 1);
+	//TestGame(6469, 4);
+	//TestGame(28571, 4);
+
+	TestMany(100, 3, 4);
 }
 
 #if 0
