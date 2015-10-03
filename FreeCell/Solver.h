@@ -9,10 +9,17 @@
 
 namespace FreeCell
 {
+	enum SolverResult
+	{
+		NotSolvable = 0,
+		Solved = 1,
+		Failed = 2,
+	};
+
 	struct Solution
 	{
 		State start;
-		bool isSolved;
+		SolverResult result;
 		std::vector<CardMove> moves;
 
 		size_t numStatesExpanded;
@@ -20,5 +27,15 @@ namespace FreeCell
 		size_t numStatesProcessed;
 	};
 
-	void Solve(const State &start, Solution &solution);
+	struct Strategy
+	{
+		size_t maximumNumberOfStatesToProcess;
+
+		Strategy() :
+			maximumNumberOfStatesToProcess(-1)
+		{
+		}
+	};
+
+	Solution Solve(const State &start, const Strategy &strategy);
 }

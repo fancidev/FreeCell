@@ -23,20 +23,23 @@ namespace FreeCell
 		// The move that leads parent to this.
 		const CardMove move;
 
+		size_t numSteps; // number of steps from start to here
+
 		score_t score; // smaller is better
 
 		SearchNode(const State &start)
-			: state(start), parent(nullptr), move()
+			: state(start), parent(nullptr), move(), numSteps(0)
 		{
 			state.CollectSafely();
 			score = ComputeStateScore(state);
 		}
 
 		SearchNode(const SearchNode *parent, CardMove move)
-			: state(parent->state), parent(parent), move(move)
+			: state(parent->state), parent(parent), move(move),
+			numSteps(parent->numSteps + 1)
 		{
-			state.MoveCard(move.card, 
-				move.FromArea(), move.FromIndex(), 
+			state.MoveCard(move.card,
+				move.FromArea(), move.FromIndex(),
 				move.ToArea(), move.ToIndex());
 			state.CollectSafely();
 			score = ComputeStateScore(state);
@@ -59,10 +62,11 @@ namespace FreeCell
 	}
 
 	// Try solve the position _start_.
-	void Solve(const State &start, Solution &solution)
+	Solution Solve(const State &start, const Strategy &strategy)
 	{
+		Solution solution;
 		solution.start = start;
-		solution.isSolved = false;
+		solution.result = NotSolvable;
 		solution.moves.clear();
 		solution.numStatesExpanded = 1;
 		solution.numStatesQueued = 1;
@@ -100,12 +104,12 @@ namespace FreeCell
 
 			if (node->state.IsWinning())
 			{
-				solution.isSolved = true;
+				solution.result = Solved;
 				while (node->parent != nullptr)
 				{
 					solution.moves.push_back(node->move);
 					node = node->parent;
-				} 
+				}
 				std::reverse(solution.moves.begin(), solution.moves.end());
 				break;
 			}
@@ -117,7 +121,8 @@ namespace FreeCell
 			{
 				CardMove move = moves[i];
 				SearchNode newNode(node, move);
-				//auto result = expandedStates.emplace(node, move);
+				// newNode.score = newNode.numSteps; // depth-first search doesn't work
+
 				auto result = expandedStates.insert(newNode);
 				if (result.second) // not duplicate
 				{
@@ -126,7 +131,14 @@ namespace FreeCell
 				}
 				++solution.numStatesExpanded;
 			}
+
+			if (solution.numStatesProcessed >= strategy.maximumNumberOfStatesToProcess)
+			{
+				solution.result = Failed;
+				break;
+			}
 		}
+		return solution;
 	}
 
 	// Evaluates the given state and returns a non-negative score.

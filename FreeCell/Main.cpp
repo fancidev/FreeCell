@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <iomanip>
 
 using namespace FreeCell;
 
@@ -18,13 +19,15 @@ static void TestIO(int gameNumber)
 	std::cout << start;
 }
 
-static void TestGame(int gameNumber)
+static void TestGame(int gameNumber, size_t maxProcess = -1)
 {
 	State start = GenerateGame(gameNumber);
 	std::cout << start;
 	
-	Solution solution;
-	Solve(start, solution);
+	Strategy strategy;
+	strategy.maximumNumberOfStatesToProcess = maxProcess;
+
+	Solution solution = Solve(start, strategy);
 	std::cout << solution;
 }
 
@@ -32,14 +35,61 @@ static void TestEasy()
 {
 	std::fstream fs;
 	fs.open("../Test/Easy.txt", std::ios::in);
-	
+
 	State state;
 	fs >> state;
 	std::cout << state;
 
-	Solution solution;
-	Solve(state, solution);
+	Solution solution = Solve(state, Strategy());
 	std::cout << solution;
+}
+
+void TestMany()
+{
+	Strategy strategy;
+	strategy.maximumNumberOfStatesToProcess = 100000;
+
+	const int numGames = 100;
+	int numSolved = 0;
+	int numNotSolvable = 0;
+	int numFailed = 0;
+
+	std::cout << "     # ?      Steps    States" << std::endl;
+
+	for (int gameNumber = 1; gameNumber <= numGames; gameNumber++)
+	{
+		State start = GenerateGame(gameNumber);
+		Solution solution = Solve(start, strategy);
+
+		std::cout << std::setw(6) << gameNumber;
+
+		switch (solution.result)
+		{
+		case Solved:
+			std::cout << " OK  ";
+			++numSolved;
+			break;
+		case NotSolvable:
+			std::cout << " NS  ";
+			++numNotSolvable;
+			break;
+		default:
+			std::cout << " FAIL";
+			++numFailed;
+			break;
+		}
+
+		std::cout << "  ";
+		std::cout << std::setw(6) << solution.moves.size();
+		std::cout << std::setw(10) << solution.numStatesProcessed;
+		std::cout << std::endl;
+	}
+
+	std::cout << "--------" << std::endl;
+	std::cout << "# Games = " << numGames << std::endl;
+	std::cout << "# OK    = " << numSolved << std::endl;
+	std::cout << "# NS    = " << numNotSolvable << std::endl;
+	std::cout << "# FAIL  = " << numFailed << std::endl;
 }
 
 int main(int argc, char *argv[])
@@ -50,7 +100,8 @@ int main(int argc, char *argv[])
 	// TestGame(739671); // cannot get
 	// TestGame(2);
 
-	TestGame(5121496);
+	//TestGame(5121496);
+	TestMany();
 }
 
 #if 0

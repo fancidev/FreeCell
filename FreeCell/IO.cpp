@@ -238,8 +238,9 @@ namespace FreeCell
 
 	std::ostream& operator<<(std::ostream &os, const Solution &solution)
 	{
-		if (solution.isSolved)
+		switch (solution.result)
 		{
+		case Solved:
 			os << "Solved in " << solution.moves.size() << " moves:";
 			for (size_t i = 0; i < solution.moves.size(); ++i)
 			{
@@ -247,10 +248,13 @@ namespace FreeCell
 				os << solution.moves[i];
 			}
 			os << std::endl;
-		}
-		else
-		{
-			os << "NO SOLUTION." << std::endl;
+			break;
+		case NotSolvable:
+			os << "Not Solvable." << std::endl;
+			break;
+		default:
+			os << "Failure." << std::endl;
+			break;
 		}
 
 		//os<<
