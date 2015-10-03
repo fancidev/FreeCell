@@ -44,52 +44,101 @@ static void TestEasy()
 	std::cout << solution;
 }
 
-void TestMany()
+void TestMany(int numGames)
 {
-	Strategy strategy;
-	strategy.maximumNumberOfStatesToProcess = 100000;
+	Strategy strategy1;
+	strategy1.maximumNumberOfStatesToProcess = 10000;
+	strategy1.heuristic = 1;
 
-	const int numGames = 100;
-	int numSolved = 0;
-	int numNotSolvable = 0;
-	int numFailed = 0;
+	Strategy strategy2;
+	strategy2.maximumNumberOfStatesToProcess = 10000;
+	strategy2.heuristic = 2;
 
-	std::cout << "     # ?      Steps    States" << std::endl;
+	struct Summary
+	{
+		size_t count[3];
+		size_t numMoves[3];
+		size_t numProcessed[3];
+		size_t numExpanded[3];
+
+#pragma warning(disable: 4351) // default initialize array
+		Summary() :
+			count(), numMoves(), numProcessed(), numExpanded()
+		{
+		}
+
+		void Update(const Solution &solution)
+		{
+			assert(solution.result >= 0 && solution.result < 3);
+
+			count[solution.result] += 1;
+			numMoves[solution.result] += solution.moves.size();
+			numProcessed[solution.result] += solution.numStatesProcessed;
+			numExpanded[solution.result] += solution.numStatesExpanded;
+
+			std::cout << solution.result;
+			std::cout << " ";
+			std::cout << std::setw(5) << solution.moves.size();
+			std::cout << std::setw(10) << solution.numStatesProcessed;
+			std::cout << " " << std::fixed << std::setprecision(1)
+				<< (double)solution.numStatesExpanded / solution.numStatesProcessed;
+		}
+
+		size_t AverageMoves(int result) const
+		{
+			return count[result] == 0 ? 0 : numMoves[result] / count[result];
+		}
+
+		size_t AverageStates(int result) const
+		{
+			return count[result] == 0 ? 0 : numProcessed[result] / count[result];
+		}
+
+		double ExpansionRatio(int result) const
+		{
+			return numProcessed[result] == 0 ? 0 :
+				(double)numExpanded[result] / numProcessed[result];
+		}
+	};
+	Summary summary1, summary2;
+
+	std::cout << "     # ?? Steps    States E/S       # ?? Steps    States E/S" << std::endl;
+	std::cout << "-----------------------------  -----------------------------" << std::endl;
 
 	for (int gameNumber = 1; gameNumber <= numGames; gameNumber++)
 	{
 		State start = GenerateGame(gameNumber);
-		Solution solution = Solve(start, strategy);
+		Solution solution1 = Solve(start, strategy1);
+		Solution solution2 = Solve(start, strategy2);
 
-		std::cout << std::setw(6) << gameNumber;
-
-		switch (solution.result)
-		{
-		case Solved:
-			std::cout << " OK  ";
-			++numSolved;
-			break;
-		case NotSolvable:
-			std::cout << " NS  ";
-			++numNotSolvable;
-			break;
-		default:
-			std::cout << " FAIL";
-			++numFailed;
-			break;
-		}
+		std::cout << std::setw(6) << gameNumber << " ";
+		summary1.Update(solution1);
 
 		std::cout << "  ";
-		std::cout << std::setw(6) << solution.moves.size();
-		std::cout << std::setw(10) << solution.numStatesProcessed;
+		std::cout << std::setw(6) << gameNumber << " ";
+		summary2.Update(solution2);
+
 		std::cout << std::endl;
 	}
 
-	std::cout << "--------" << std::endl;
-	std::cout << "# Games = " << numGames << std::endl;
-	std::cout << "# OK    = " << numSolved << std::endl;
-	std::cout << "# NS    = " << numNotSolvable << std::endl;
-	std::cout << "# FAIL  = " << numFailed << std::endl;
+	std::cout << "-----------------------------  -----------------------------" << std::endl;
+	for (int result = 0; result < 3; result++)
+	{
+		std::cout
+			<< std::setw(6) << summary1.count[result]
+			<< " " << static_cast<SolverResult>(result)
+			<< " " << std::setw(5) << summary1.AverageMoves(result)
+			<< " " << std::setw(9) << summary1.AverageStates(result)
+			<< " " << std::fixed << std::setprecision(1) << summary1.ExpansionRatio(result);
+		std::cout << "  ";
+		std::cout
+			<< std::setw(6) << summary2.count[result]
+			<< " " << static_cast<SolverResult>(result)
+			<< " " << std::setw(5) << summary2.AverageMoves(result)
+			<< " " << std::setw(9) << summary2.AverageStates(result)
+			<< " " << std::fixed << std::setprecision(1) << summary2.ExpansionRatio(result);
+		std::cout << std::endl;
+	}
 }
 
 int main(int argc, char *argv[])
@@ -101,7 +150,8 @@ int main(int argc, char *argv[])
 	// TestGame(2);
 
 	//TestGame(5121496);
-	TestMany();
+	TestMany(10);
+	//TestGame(6469);
 }
 
 #if 0

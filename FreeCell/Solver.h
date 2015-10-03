@@ -11,8 +11,8 @@ namespace FreeCell
 {
 	enum SolverResult
 	{
-		NotSolvable = 0,
-		Solved = 1,
+		Solved = 0,
+		NotSolvable = 1,
 		Failed = 2,
 	};
 
@@ -30,9 +30,10 @@ namespace FreeCell
 	struct Strategy
 	{
 		size_t maximumNumberOfStatesToProcess;
+		int heuristic;
 
 		Strategy() :
-			maximumNumberOfStatesToProcess(-1)
+			maximumNumberOfStatesToProcess(-1), heuristic(0)
 		{
 		}
 	};

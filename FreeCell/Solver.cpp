@@ -11,7 +11,8 @@ namespace FreeCell
 {
 	typedef unsigned int score_t;
 
-	static score_t ComputeStateScore(const State &);
+	static score_t ComputeHeuristic1(const State &);
+	static score_t ComputeHeuristic2(const State &);
 
 	struct SearchNode
 	{
@@ -28,10 +29,9 @@ namespace FreeCell
 		score_t score; // smaller is better
 
 		SearchNode(const State &start)
-			: state(start), parent(nullptr), move(), numSteps(0)
+			: state(start), parent(nullptr), move(), numSteps(0), score(0)
 		{
 			state.CollectSafely();
-			score = ComputeStateScore(state);
 		}
 
 		SearchNode(const SearchNode *parent, CardMove move)
@@ -42,7 +42,6 @@ namespace FreeCell
 				move.FromArea(), move.FromIndex(),
 				move.ToArea(), move.ToIndex());
 			state.CollectSafely();
-			score = ComputeStateScore(state);
 		}
 	};
 
@@ -121,7 +120,24 @@ namespace FreeCell
 			{
 				CardMove move = moves[i];
 				SearchNode newNode(node, move);
-				// newNode.score = newNode.numSteps; // depth-first search doesn't work
+				
+				switch (strategy.heuristic)
+				{
+				//case 0: // depth-first search; doesn't work
+				//	newNode.score = newNode.numSteps;
+				//	break;
+				case 0:
+				case 1:
+					newNode.score = ComputeHeuristic1(newNode.state);
+					break;
+				case 2:
+					newNode.score = ComputeHeuristic2(newNode.state);
+					break;
+				default:
+					assert(0);
+					break;
+				}
+				
 
 				auto result = expandedStates.insert(newNode);
 				if (result.second) // not duplicate
@@ -144,7 +160,7 @@ namespace FreeCell
 	// Evaluates the given state and returns a non-negative score.
 	// Lower score is better. A state where all cards are collected
 	// must have score = 0.
-	static score_t ComputeStateScore(const State &state)
+	static score_t ComputeHeuristic1(const State &state)
 	{
 		score_t score = 0;
 
@@ -190,4 +206,52 @@ namespace FreeCell
 
 		return score;
 	}
+
+	static score_t ComputeHeuristic2(const State &state)
+	{
+		score_t score = 0;
+
+		//int cell_punish[5] = { 0, 1, 2, 4, 7 };
+
+		//int nEmptyCell, nEmptyColumn;
+		//int i;
+
+		///* how many empty cells */
+		//for (i = 0; (i < 4) && IS_FREECELL_EMPTY(st, i); i++);
+		//nEmptyCell = i;
+		//score += 10 * cell_punish[4 - nEmptyCell];
+
+		///* how many empty columns */
+		//for (i = 0; (i < 8) && IS_COLUMN_EMPTY(st, i); i++);
+		//nEmptyColumn = i;
+		//score += 5 * (8 - nEmptyColumn);
+
+		// Go through each column.
+		for (int columnIndex = 0; columnIndex < 8; columnIndex++)
+		{
+			CARD card = state.TopCardOfColumn(columnIndex);
+			if (IsCard(card))
+			{
+				size_t cost = 0; // or 0 ?
+				CARD c = card;
+				for (CARD c2; IsCard(c2 = state.CardUnder(c)); c = c2)
+				{
+					if (!IsIncrementRankAlternateColor(c, c2))
+					{
+						++cost;
+					}
+					score += cost;
+				}
+			}
+		}
+
+		///* punish empty homecell */
+		//for (i = 0; i < 4; i++) {
+		//	if (IS_HOMECELL_EMPTY(st, INDEX2SUIT(i)))
+		//		score += 20;
+		//}
+
+		return score;
+	}
+
 }

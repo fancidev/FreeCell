@@ -15,4 +15,5 @@ namespace FreeCell
 	std::ostream& operator << (std::ostream &os, const State &);
 	std::ostream& operator << (std::ostream &os, const CardMove &);
 	std::ostream& operator << (std::ostream &os, const Solution &);
+	std::ostream& operator << (std::ostream &os, const SolverResult &);
 }

@@ -236,6 +236,19 @@ namespace FreeCell
 		return os;
 	}
 
+	std::ostream& operator << (std::ostream &os, const SolverResult &result)
+	{
+		switch (result)
+		{
+		case Solved:
+			return os << "OK";
+		case NotSolvable:
+			return os << "NS";
+		default:
+			return os << "FL";
+		}
+	}
+
 	std::ostream& operator<<(std::ostream &os, const Solution &solution)
 	{
 		switch (solution.result)
