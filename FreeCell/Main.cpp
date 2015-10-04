@@ -45,15 +45,17 @@ static void TestEasy()
 	std::cout << solution;
 }
 
-void TestMany(int numGames, int heuristic1, int heuristic2)
+void TestMany(int firstGame, int lastGame, int heuristic1, int heuristic2)
 {
 	Strategy strategy1;
-	strategy1.maximumNumberOfStatesToProcess = 10000;
+	strategy1.maximumNumberOfStatesToProcess = 100000;
 	strategy1.heuristic = heuristic1;
 
 	Strategy strategy2;
 	strategy2.maximumNumberOfStatesToProcess = 10000;
 	strategy2.heuristic = heuristic2;
+
+	std::vector<int> failedGames1, failedGames2;
 
 	struct Summary
 	{
@@ -81,8 +83,8 @@ void TestMany(int numGames, int heuristic1, int heuristic2)
 			std::cout << " ";
 			std::cout << std::setw(5) << solution.moves.size();
 			std::cout << std::setw(10) << solution.numStatesProcessed;
-			std::cout << " " << std::fixed << std::setprecision(1)
-				<< (double)solution.numStatesExpanded / solution.numStatesProcessed;
+			std::cout << std::setw(9) << solution.numStatesExpanded;
+			std::cout.flush();
 		}
 
 		size_t AverageMoves(int result) const
@@ -95,6 +97,11 @@ void TestMany(int numGames, int heuristic1, int heuristic2)
 			return count[result] == 0 ? 0 : numProcessed[result] / count[result];
 		}
 
+		size_t AverageExpansion(int result) const
+		{
+			return count[result] == 0 ? 0 : numExpanded[result] / count[result];
+		}
+
 		double ExpansionRatio(int result) const
 		{
 			return numProcessed[result] == 0 ? 0 :
@@ -103,26 +110,48 @@ void TestMany(int numGames, int heuristic1, int heuristic2)
 	};
 	Summary summary1, summary2;
 
-	std::cout << "     # ?? Steps    States E/S       # ?? Steps    States E/S" << std::endl;
-	std::cout << "-----------------------------  -----------------------------" << std::endl;
+	std::cout << "[H" << heuristic1 << "] # ?? Steps    States Expanded";
+	if (heuristic1 != heuristic2)
+	{
+		std::cout << "  [H" << heuristic2 << "] # ?? Steps    States Expanded";
+	}
+	std::cout << std::endl;
+	std::cout << "----------------------------------";
+	if (heuristic1 != heuristic2)
+	{
+		std::cout << "  ----------------------------------";
+	}
+	std::cout << std::endl;
 
-	for (int gameNumber = 1; gameNumber <= numGames; gameNumber++)
+	for (int gameNumber = firstGame; gameNumber <= lastGame; gameNumber++)
 	{
 		State start = GenerateGame(gameNumber);
-		Solution solution1 = Solve(start, strategy1);
-		Solution solution2 = Solve(start, strategy2);
 
+		Solution solution1 = Solve(start, strategy1);
 		std::cout << std::setw(6) << gameNumber << " ";
 		summary1.Update(solution1);
+		if (solution1.result == Failed)
+			failedGames1.push_back(gameNumber);
 
-		std::cout << "  ";
-		std::cout << std::setw(6) << gameNumber << " ";
-		summary2.Update(solution2);
+		if (heuristic2 != heuristic1)
+		{
+			Solution solution2 = Solve(start, strategy2);
+			std::cout << "  ";
+			std::cout << std::setw(6) << gameNumber << " ";
+			summary2.Update(solution2);
+			if (solution2.result == Failed)
+				failedGames2.push_back(gameNumber);
+		}
 
 		std::cout << std::endl;
 	}
 
-	std::cout << "-----------------------------  -----------------------------" << std::endl;
+	std::cout << "----------------------------------";
+	if (heuristic1 != heuristic2)
+	{
+		std::cout << "  ----------------------------------";
+	}
+	std::cout << std::endl;
 	for (int result = 0; result < 3; result++)
 	{
 		std::cout
@@ -130,14 +159,33 @@ void TestMany(int numGames, int heuristic1, int heuristic2)
 			<< " " << static_cast<SolverResult>(result)
 			<< " " << std::setw(5) << summary1.AverageMoves(result)
 			<< " " << std::setw(9) << summary1.AverageStates(result)
-			<< " " << std::fixed << std::setprecision(1) << summary1.ExpansionRatio(result);
-		std::cout << "  ";
-		std::cout
-			<< std::setw(6) << summary2.count[result]
-			<< " " << static_cast<SolverResult>(result)
-			<< " " << std::setw(5) << summary2.AverageMoves(result)
-			<< " " << std::setw(9) << summary2.AverageStates(result)
-			<< " " << std::fixed << std::setprecision(1) << summary2.ExpansionRatio(result);
+			<< " " << std::setw(8) << summary1.AverageExpansion(result);
+		if (heuristic1 != heuristic2)
+		{
+			std::cout << "  ";
+			std::cout
+				<< std::setw(6) << summary2.count[result]
+				<< " " << static_cast<SolverResult>(result)
+				<< " " << std::setw(5) << summary2.AverageMoves(result)
+				<< " " << std::setw(9) << summary2.AverageStates(result)
+				<< " " << std::setw(8) << summary2.AverageExpansion(result);
+		}
+		std::cout << std::endl;
+	}
+
+	std::cout << "----------------------------------" << std::endl;
+	if (failedGames1.size() > 0)
+	{
+		std::cout << "Failed games 1:";
+		for (int gameNumber : failedGames1)
+			std::cout << " " << gameNumber;
+		std::cout << std::endl;
+	}
+	if (failedGames2.size() > 0)
+	{
+		std::cout << "Failed games 2:";
+		for (int gameNumber : failedGames2)
+			std::cout << " " << gameNumber;
 		std::cout << std::endl;
 	}
 }
@@ -156,7 +204,7 @@ int main(int argc, char *argv[])
 
 	//TestGame(31931, 4);
 
-	TestMany(100, 2, 3);
+	TestMany(1, 5000, 1, 1);
 }
 
 #if 0
