@@ -8,7 +8,7 @@ namespace FreeCell
 {
 	static size_t ComputeHeuristic1(const State &state)
 	{
-		size_t score = 0;
+		size_t score = 52 - state.NumberOfCardsCollected();
 
 		//int cell_punish[5] = { 0, 1, 2, 4, 7 };
 
@@ -55,7 +55,7 @@ namespace FreeCell
 
 	static size_t ComputeHeuristic2(const State &state)
 	{
-		size_t score = 0;
+		size_t score = 52 - state.NumberOfCardsCollected();
 
 		//int cell_punish[5] = { 0, 1, 2, 4, 7 };
 
@@ -78,7 +78,7 @@ namespace FreeCell
 			CARD card = state.TopCardOfColumn(columnIndex);
 			if (IsCard(card))
 			{
-				size_t cost = 0; // or 0 ?
+				size_t cost = 0; // 0 or 1 ?
 				CARD c = card;
 				for (CARD c2; IsCard(c2 = state.CardUnder(c)); c = c2)
 				{
@@ -141,13 +141,13 @@ namespace FreeCell
 	//
 	//                        H1      H2      H3      H4
 	// Summary -----------------------------------------
-	//   OK                   93      88      99     100
+	//   OK                   95      96      99     100
 	//   NS                    0       0       0       0
-	//   FL                    7      12       1       0
+	//   FL                    5       4       1       0
 	// When OK -----------------------------------------
-	//   Avg # Moves          47      49      47      48
-	//   Avg # Processed    1564    1994    1030     677
-	//   Avg # Expanded     6100   16151   16480   16113
+	//   Avg # Moves          51      53      49      50
+	//   Avg # Processed    1565    2004     889     636
+	//   Avg # Expanded     6104   15431   12979   15010
 	//
 	// Conclusion: H4 > H3 > H1 > H2.
 	//

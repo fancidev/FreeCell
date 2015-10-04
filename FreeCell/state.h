@@ -200,6 +200,11 @@ namespace FreeCell
 				&& RankOf(home[3]) == 13;
 		}
 
+		int NumberOfCardsCollected() const
+		{
+			return RankOf(home[0]) + RankOf(home[1]) + RankOf(home[2]) + RankOf(home[3]);
+		}
+
 		bool CanCollect(CARD card) const
 		{
 			assert(IsCard(card));
@@ -208,7 +213,7 @@ namespace FreeCell
 
 		bool CanCollectSafely(CARD card) const;
 
-		void CollectSafely();
+		int CollectSafely();
 
 		/*Card GetBottomCard(ColumnIndex column) const
 		{

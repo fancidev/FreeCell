@@ -29,7 +29,7 @@ namespace FreeCell
 		SearchNode(const State &start)
 			: state(start), parent(nullptr), move(), numSteps(0), score(0)
 		{
-			state.CollectSafely();
+			numSteps = state.CollectSafely();
 		}
 
 		SearchNode(const SearchNode *parent, CardMove move)
@@ -39,7 +39,7 @@ namespace FreeCell
 			state.MoveCard(move.card,
 				move.FromArea(), move.FromIndex(),
 				move.ToArea(), move.ToIndex());
-			state.CollectSafely();
+			numSteps += state.CollectSafely();
 		}
 	};
 

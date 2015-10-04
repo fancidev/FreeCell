@@ -105,9 +105,11 @@ namespace FreeCell
 			&& RankOf(TopCardInHomeCell(AlternateSuit2(SuitOf(card)))) >= r - 2;
 	}
 
-	// Collect as many cards safely as possible. This is done recursively.
-	void State::CollectSafely()
+	// Collect as many cards safely as possible recursively.
+	// Returns the number of cards collected.
+	int State::CollectSafely()
 	{
+		int total = 0;
 		int n;
 		do 
 		{
@@ -140,7 +142,9 @@ namespace FreeCell
 					}
 				}
 			}
+			total += n;
 		} while (n > 0);
+		return total;
 	}
 
 	// Get all possible moves from the current state.
