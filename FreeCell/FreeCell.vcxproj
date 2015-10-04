@@ -66,6 +66,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Heuristic.cpp" />
     <ClCompile Include="IO.cpp" />
     <ClCompile Include="GenerateGame.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -74,6 +75,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="card.h" />
+    <ClInclude Include="Heuristic.h" />
     <ClInclude Include="IO.h" />
     <ClInclude Include="GenerateGame.h" />
     <ClInclude Include="Solver.h" />

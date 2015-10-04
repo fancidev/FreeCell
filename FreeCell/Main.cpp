@@ -48,11 +48,11 @@ static void TestEasy()
 void TestMany(int numGames, int heuristic1, int heuristic2)
 {
 	Strategy strategy1;
-	strategy1.maximumNumberOfStatesToProcess = 10000;
+	strategy1.maximumNumberOfStatesToProcess = 100000;
 	strategy1.heuristic = heuristic1;
 
 	Strategy strategy2;
-	strategy2.maximumNumberOfStatesToProcess = 10000;
+	strategy2.maximumNumberOfStatesToProcess = 100000;
 	strategy2.heuristic = heuristic2;
 
 	struct Summary
@@ -153,9 +153,10 @@ int main(int argc, char *argv[])
 	//TestGame(5121496);
 	//TestGame(6469, 1);
 	//TestGame(6469, 4);
-	//TestGame(28571, 4);
 
-	TestMany(100, 3, 4);
+	//TestGame(31931, 4);
+
+	TestMany(100, 1, 4);
 }
 
 #if 0
